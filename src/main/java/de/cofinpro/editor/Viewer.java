@@ -1,8 +1,9 @@
 package de.cofinpro.editor;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.sun.jna.Native;
 import org.apache.logging.log4j.core.config.ConfigurationFactory;
+
+import java.io.IOException;
 
 public class Viewer {
 
@@ -10,9 +11,9 @@ public class Viewer {
         ConfigurationFactory.setConfigurationFactory(new Log4j2CustomConfigurationFactory());
     }
 
-    private static final Logger LOG = LogManager.getLogger(Viewer.class);
-
-    public static void main(String[] args) {
-        LOG.info("\033[31mHello World!\033[0m");
+    public static void main(String[] args) throws IOException {
+        Native.setProtected(true);
+        var terminal = new Terminal();
+        terminal.keyPressLoop();
     }
 }

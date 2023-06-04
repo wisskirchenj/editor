@@ -29,7 +29,7 @@ public class Log4j2CustomConfigurationFactory extends ConfigurationFactory {
         AppenderComponentBuilder appenderBuilder = builder.newAppender(STDOUT, "CONSOLE").
                 addAttribute("target", ConsoleAppender.Target.SYSTEM_OUT);
         appenderBuilder.add(builder.newLayout("PatternLayout").
-                addAttribute("pattern", "%d{dd.MM.yyyy HH:mm:ss} - %p - %C{1}.%t L%L: %m%n"));
+                addAttribute("pattern", "%d{dd.MM.yyyy HH:mm:ss} - %p - %C{1}.%M L%L: %m%n"));
         appenderBuilder.add(builder.newFilter("MarkerFilter", Filter.Result.DENY,
                 Filter.Result.NEUTRAL).addAttribute("marker", "FLOW"));
         builder.add(appenderBuilder);

@@ -1,5 +1,9 @@
 plugins {
-    id("java")
+    id("application")
+}
+
+application {
+    mainClass.set("de/cofinpro/editor/Viewer")
 }
 
 group = "de.cofinpro"
