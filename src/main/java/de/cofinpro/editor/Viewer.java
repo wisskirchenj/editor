@@ -15,7 +15,7 @@ public class Viewer {
 
     public static void main(String[] args) throws IOException {
         Native.setProtected(true);
-        var terminal = new Terminal();
-        terminal.keyPressLoop();
+        var terminal = new Terminal(20, 50);
+        terminal.run();
     }
 }
