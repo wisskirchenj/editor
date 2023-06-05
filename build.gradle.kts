@@ -25,9 +25,8 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok:$lombokVersion")
     testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
-    testImplementation(platform("org.junit:junit-bom:5.10.-M1"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0-M1")
     testImplementation("org.mockito:mockito-junit-jupiter:5.3.1")
-    testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
 tasks.test {
