@@ -30,7 +30,9 @@ project directory. You can find the executable bash-script then hier:
 You need to `cd` there now from a MacOS terminal and just run above script. It is _not_ possible to run the application from
 within IDE, since the Run-terminals here are emulated and the JNA-calls won't work.
 
-## Project completion
+## Project status
+
+Project is ongoing.
 
 [//]: # (Project was completed on 14.05.23.)
 
