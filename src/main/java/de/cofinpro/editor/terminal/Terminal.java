@@ -11,7 +11,7 @@ public class Terminal {
     private final LibC.TermIos rawModeTermIos;
 
     public Terminal() {
-        var termios = LibC.TermIos.of(callAndLogTcgetattr());
+        var termios = LibC.TermIos.of(logTermIos());
         if (termios.inRawMode()) {
             this.rawModeTermIos = termios;
             this.normalModeTermIos = setNormalModeFlags(termios);
@@ -61,10 +61,10 @@ public class Terminal {
         var returnCode = LibC.INSTANCE.tcsetattr(LibC.SYSTEM_OUT_FD, LibC.TCSAFLUSH,
                 enabled ? rawModeTermIos : normalModeTermIos);
         errorExit(returnCode, "tcsetattr");
-        callAndLogTcgetattr();
+        logTermIos();
     }
 
-    private LibC.TermIos callAndLogTcgetattr() {
+    private LibC.TermIos logTermIos() {
         var termios = new LibC.TermIos();
         var returnCode = LibC.INSTANCE.tcgetattr(LibC.SYSTEM_OUT_FD, termios);
         errorExit(returnCode, "tcgetattr");

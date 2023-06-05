@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 
 public interface LibC extends Library {
 
+    // load the C standard library for POSIX systems
+    LibC INSTANCE = Native.load("c", LibC.class);
     int SYSTEM_OUT_FD = 0;
     int TCSAFLUSH = 2;
     long ISIG = 0x80;
@@ -24,13 +26,14 @@ public interface LibC extends Library {
     long RAW_TOGGLE_IFLAGS = IXON | ICRNL;
     long RAW_TOGGLE_OFLAGS = OPOST;
 
-    // load the C standard library for POSIX systems
-    LibC INSTANCE = Native.load("c", LibC.class);
+    int tcgetattr(int fildes, TermIos termIosP);
+
+    int tcsetattr(int fildes, int optionalActions, TermIos termIosP);
 
     @EqualsAndHashCode(callSuper = false)
     @NoArgsConstructor
     @Structure.FieldOrder({"cIflag", "cOflag", "cCflag", "cLflag", "cCc", "cIspeed", "cOspeed"})
-    class TermIos extends Structure {
+    class TermIos extends Structure implements Structure.ByReference {
 
         public long cIflag;                //input modes
         public long cOflag;                //output modes
@@ -68,9 +71,4 @@ public interface LibC extends Library {
                    '}';
         }
     }
-
-    int tcgetattr(int fildes, TermIos termIosP);
-
-    int tcsetattr(int fildes, int optionalActions, TermIos termIosP);
-
 }
