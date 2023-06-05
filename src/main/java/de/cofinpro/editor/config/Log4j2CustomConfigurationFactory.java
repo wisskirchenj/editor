@@ -1,4 +1,4 @@
-package de.cofinpro.editor;
+package de.cofinpro.editor.config;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LoggerContext;

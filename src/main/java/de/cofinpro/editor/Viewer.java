@@ -1,6 +1,8 @@
 package de.cofinpro.editor;
 
 import com.sun.jna.Native;
+import de.cofinpro.editor.config.Log4j2CustomConfigurationFactory;
+import de.cofinpro.editor.terminal.Terminal;
 import org.apache.logging.log4j.core.config.ConfigurationFactory;
 
 import java.io.IOException;
