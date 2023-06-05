@@ -2,7 +2,6 @@ package de.cofinpro.editor.terminal;
 
 class AnsiEscape {
 
-    static final String CSI = "\033[";
     static final String ERASE_SEQ = "\033[%dJ";
     static final String POS_SEQ = "\033[%sH";
 

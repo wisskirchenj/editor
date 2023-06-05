@@ -32,8 +32,6 @@ public interface LibC extends Library {
        #define	IOC_OUT		(unsigned long)0x40000000
        #define	IOCPARM_MASK	0x1fff	 */
     long TIOCGWINSZ = 0x40087468L;
-    long TIOCSWINSZ = 0x80087467L;
-    long TIOCGETA = 0x40447413;
     long RAW_TOGGLE_LFLAGS = ECHO | ICANON | IEXTEN | ISIG;
     long RAW_TOGGLE_IFLAGS = IXON | ICRNL;
     long RAW_TOGGLE_OFLAGS = OPOST;
