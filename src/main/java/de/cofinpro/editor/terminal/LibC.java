@@ -6,12 +6,15 @@ import com.sun.jna.Structure;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+
+import static de.cofinpro.editor.terminal.AnsiEscape.red;
 
 public interface LibC extends Library {
 
     // load the C standard library for POSIX systems
     LibC INSTANCE = Native.load("c", LibC.class);
-    int STDIN_FD = 1;
+    int STDIN_FD = 0;
     int TCSAFLUSH = 2;
     long ISIG = 0x80;
     long ICANON = 0x100;
@@ -44,6 +47,11 @@ public interface LibC extends Library {
     int	ioctl(int fildes, long command, WinSize args);
     String strerror(int errno);
 
+    default void setMode(TermIos termIos) {
+        var returnCode = INSTANCE.tcsetattr(STDIN_FD, TCSAFLUSH, termIos);
+        TermIos.errorExit(returnCode, "tcsetattr");
+    }
+
     @NoArgsConstructor
     @ToString
     @EqualsAndHashCode(callSuper = false)
@@ -59,6 +67,7 @@ public interface LibC extends Library {
     @NoArgsConstructor
     @EqualsAndHashCode(callSuper = false)
     @Structure.FieldOrder({"cIflag", "cOflag", "cCflag", "cLflag", "cCc", "cIspeed", "cOspeed"})
+    @Slf4j
     class TermIos extends Structure implements Structure.ByReference { // from termios.h
 
         public long cIflag;                //input modes
@@ -85,6 +94,22 @@ public interface LibC extends Library {
             return copy;
         }
 
+        TermIos withRawModeFlags() {
+            var result = of(this);
+            result.cLflag &= ~RAW_TOGGLE_LFLAGS;
+            result.cIflag &= ~RAW_TOGGLE_IFLAGS;
+            result.cOflag &= ~RAW_TOGGLE_OFLAGS;
+            return result;
+        }
+
+        TermIos withNormalModeFlags() {
+            var result = of(this);
+            result.cLflag |= RAW_TOGGLE_LFLAGS;
+            result.cIflag |= RAW_TOGGLE_IFLAGS;
+            result.cOflag |= RAW_TOGGLE_OFLAGS;
+            return result;
+        }
+
         @Override
         public String toString() {
             return "TermIos{" +
@@ -95,6 +120,20 @@ public interface LibC extends Library {
                    ", cIspeed=" + cIspeed +
                    ", cOspeed=" + cOspeed +
                    '}';
+        }
+        static TermIos getTermIos() {
+            var termios = new TermIos();
+            var returnCode = INSTANCE.tcgetattr(STDIN_FD, termios);
+            errorExit(returnCode, "tcgetattr");
+            return termios;
+        }
+
+        static void errorExit(int returnCode, String problemCall) {
+            if (returnCode != 0) {
+                log.error(red("Problem with {}! Return code {}\n"), problemCall, returnCode);
+                log.error(red("errno='{}'\n"), INSTANCE.strerror(Native.getLastError()));
+                System.exit(returnCode);
+            }
         }
     }
 }
