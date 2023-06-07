@@ -8,7 +8,10 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Objects;
+
 import static de.cofinpro.editor.terminal.AnsiEscape.red;
+import static de.cofinpro.editor.terminal.LibC.TermIos.initialState;
 
 public interface LibC extends Library {
 
@@ -47,9 +50,22 @@ public interface LibC extends Library {
     int	ioctl(int fildes, long command, WinSize args);
     String strerror(int errno);
 
-    default void setMode(TermIos termIos) {
-        var returnCode = INSTANCE.tcsetattr(STDIN_FD, TCSAFLUSH, termIos);
-        TermIos.errorExit(returnCode, "tcsetattr");
+    default void setRawMode() {
+        if (Objects.isNull(initialState)) {
+            TermIos.storeInitialState();
+        }
+        var rawModeTermIos = Objects.requireNonNull(initialState).withRawModeFlags();
+        var returnCode = INSTANCE.tcsetattr(STDIN_FD, TCSAFLUSH, rawModeTermIos);
+        if (returnCode != 0) {
+            TermIos.errorExit(returnCode, "tcsetattr");
+        }
+    }
+
+    default void setNormalMode() {
+        var returnCode = INSTANCE.tcsetattr(STDIN_FD, TCSAFLUSH, initialState);
+        if (returnCode != 0) {
+            TermIos.errorExit(returnCode, "tcsetattr");
+        }
     }
 
     @NoArgsConstructor
@@ -78,11 +94,25 @@ public interface LibC extends Library {
         public long cIspeed;               //control modes
         public long cOspeed;               //local modes
 
-        boolean inRawMode() {
-            return (cOflag & LibC.OPOST) == 0x0;
+        static TermIos initialState;
+
+        TermIos withRawModeFlags() {
+            var result = of(this);
+            result.cLflag &= ~RAW_TOGGLE_LFLAGS;
+            result.cIflag &= ~RAW_TOGGLE_IFLAGS;
+            result.cOflag &= ~RAW_TOGGLE_OFLAGS;
+            return result;
         }
 
-        static TermIos of(TermIos t) {
+        static void storeInitialState() {
+            initialState = new TermIos();
+            var returnCode = INSTANCE.tcgetattr(STDIN_FD, initialState);
+            if (returnCode != 0) {
+                errorExit(returnCode, "tcgetattr");
+            }
+        }
+
+        private static TermIos of(TermIos t) {
             var copy = new TermIos();
             copy.cIflag = t.cIflag;
             copy.cOflag = t.cOflag;
@@ -94,46 +124,10 @@ public interface LibC extends Library {
             return copy;
         }
 
-        TermIos withRawModeFlags() {
-            var result = of(this);
-            result.cLflag &= ~RAW_TOGGLE_LFLAGS;
-            result.cIflag &= ~RAW_TOGGLE_IFLAGS;
-            result.cOflag &= ~RAW_TOGGLE_OFLAGS;
-            return result;
-        }
-
-        TermIos withNormalModeFlags() {
-            var result = of(this);
-            result.cLflag |= RAW_TOGGLE_LFLAGS;
-            result.cIflag |= RAW_TOGGLE_IFLAGS;
-            result.cOflag |= RAW_TOGGLE_OFLAGS;
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            return "TermIos{" +
-                   "cIflag=0x%x".formatted(cIflag) +
-                   ", cOflag=0x%x".formatted(cOflag) +
-                   ", cCflag=0x%x".formatted(cCflag) +
-                   ", cLflag=0x%x".formatted(cLflag) +
-                   ", cIspeed=" + cIspeed +
-                   ", cOspeed=" + cOspeed +
-                   '}';
-        }
-        static TermIos getTermIos() {
-            var termios = new TermIos();
-            var returnCode = INSTANCE.tcgetattr(STDIN_FD, termios);
-            errorExit(returnCode, "tcgetattr");
-            return termios;
-        }
-
         static void errorExit(int returnCode, String problemCall) {
-            if (returnCode != 0) {
-                log.error(red("Problem with {}! Return code {}\n"), problemCall, returnCode);
-                log.error(red("errno='{}'\n"), INSTANCE.strerror(Native.getLastError()));
-                System.exit(returnCode);
-            }
+            log.error(red("Problem with {}! Return code {}\n"), problemCall, returnCode);
+            log.error(red("errno='{}'\n"), INSTANCE.strerror(Native.getLastError()));
+            System.exit(returnCode);
         }
     }
 }
