@@ -5,7 +5,6 @@ import com.sun.jna.Native;
 import com.sun.jna.Structure;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
