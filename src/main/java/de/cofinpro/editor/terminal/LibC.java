@@ -55,18 +55,6 @@ public interface LibC extends Library {
     }
 
     @NoArgsConstructor
-    @ToString
-    @EqualsAndHashCode(callSuper = false)
-    @Structure.FieldOrder({"wsRow", "wsCol", "wsXpixel", "wsYpixel"})
-    class WinSize extends Structure implements Structure.ByReference { // from ttycom.h
-
-        public short wsRow;     // rows, in characters
-        public short wsCol;     // columns, in characters
-        public short wsXpixel;  // horizontal size, pixels
-        public short wsYpixel;  // vertical size, pixels
-    }
-
-    @NoArgsConstructor
     @EqualsAndHashCode(callSuper = false)
     @Structure.FieldOrder({"cIflag", "cOflag", "cCflag", "cLflag", "cCc", "cIspeed", "cOspeed"})
     @Slf4j
