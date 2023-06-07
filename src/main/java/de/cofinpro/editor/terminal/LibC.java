@@ -26,18 +26,6 @@ public interface LibC extends Library {
     long ICRNL = 0x100;
     long IEXTEN = 0x400;
     long OPOST = 0x1;
-    long VMIN = 6;
-    long VTIME = 5;
-    /* ------ ttycom.h defines TIOCGWINSZ and winsize struct ( class below) ----------------------
-       #define TIOCGWINSZ      _IOR('t', 104, struct winsize)  // get window size
-       ------ ioccom.h defines _IOR / _IOC-macros and consts needed  -----------------------------
-       #define	_IOR(g,n,t)	_IOC(IOC_OUT,	(g), (n), sizeof(t)) gives
-               _IOC( 0x40000000, 0x74=(int)'t', 0x68=104, 8=sizeof(struct winsize) )
-       #define	_IOC(inout,group,num,len) (inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num))
-              with (len=8 & 01fff = 8) => 0x40087468 (!)
-       #define	IOC_OUT		(unsigned long)0x40000000
-       #define	IOCPARM_MASK	0x1fff	 */
-    long TIOCGWINSZ = 0x40087468L;
     long RAW_TOGGLE_LFLAGS = ECHO | ICANON | IEXTEN | ISIG;
     long RAW_TOGGLE_IFLAGS = IXON | ICRNL;
     long RAW_TOGGLE_OFLAGS = OPOST;
@@ -46,8 +34,6 @@ public interface LibC extends Library {
 
     int tcsetattr(int fildes, int optionalActions, TermIos termIosP);
 
-    /* declaration from ioctl.h: "int ioctl(int fd, int cmd, ...);", where ... is void* of max-length 0x1fff */
-    int	ioctl(int fildes, long command, WinSize args);
     String strerror(int errno);
 
     default void setRawMode() {
