@@ -10,14 +10,15 @@ import static de.cofinpro.editor.terminal.AnsiEscape.red;
 public class SttyCommand {
 
     String run() {
-        String processOutput;
         try {
             var process = new ProcessBuilder("stty", "-f", "/dev/tty", "size").start();
-            processOutput = new String(process.getInputStream().readAllBytes());
+            return new String(process.getInputStream().readAllBytes());
         } catch (IOException e) {
             log.error(red("stty Command failed!"));
-            return null;
+            throw new CommandException();
         }
-        return processOutput;
+    }
+
+    static class CommandException extends RuntimeException {
     }
 }
