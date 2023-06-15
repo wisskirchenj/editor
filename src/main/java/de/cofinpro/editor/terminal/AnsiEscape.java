@@ -3,7 +3,9 @@ package de.cofinpro.editor.terminal;
 class AnsiEscape {
 
     static final String ERASE_SEQ = "\033[%dJ";
+    static final String ERASE_LINE_SEQ = "\033[%dK";
     static final String POS_SEQ = "\033[%sH";
+    static final String BACK_SEQ = "\033[D";
 
     private AnsiEscape() {
         // no instances
@@ -22,6 +24,10 @@ class AnsiEscape {
         return ERASE_SEQ.formatted(mode.ordinal());
     }
 
+    static String eraseLine(EraseMode mode) {
+        return ERASE_LINE_SEQ.formatted(mode.ordinal());
+    }
+
     static String magenta(String message) {
         return rendition(message, 35);
     }
@@ -36,6 +42,10 @@ class AnsiEscape {
 
     static String inverted(String message) {
         return rendition(message, 7);
+    }
+
+    static String back() {
+        return BACK_SEQ;
     }
 
     private static String rendition(String message, int colorCode) {
