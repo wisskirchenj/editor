@@ -30,6 +30,23 @@ project directory. You can find the executable bash-script then hier:
 You need to `cd` there now from a MacOS terminal and just run above script. It is _not_ possible to run the application from
 within IDE, since the Run-terminals here are emulated and the JNA-calls won't work.
 
+## Usage
+
+Currently implemented control keys:
+
+> `CTRL-Q`: Quit the editor
+> 
+> `Ctrl-W`: After a manual terminal resize adjust the running editor to the new dimensions (Internally it runs an stty-)
+command and uses its output to set new clipping dimensions).
+> 
+> `BACKSPACE`: delete character in front of cursor (no surprise here :-)
+> 
+> `Arrow-Keys`: navigate through the text buffer - viewport scrolls to center cursor position as soon as the boundary is
+touched or when jumping out of the viewport (similar and inspired by the behaviour of emacs)
+> 
+> More to come up ...
+
+
 ## Project status
 
 Project is ongoing.
@@ -42,3 +59,7 @@ Project is ongoing.
 custom ConfigurationFactory.
 
 05.06.23 Some refactoring. Doing a keyPress-loop in Terminal to toggle between terminal's raw and normal mode.
+
+01.07.23 Core editor functionality implemented based on an OOP-design with an Editor (controller-type) class, that
+instantiates and uses EditorModel, Cursor and Clipping objects. The editor scrolls its viewport vertically as well
+as horizontally (unlike emacs or vi, who in base mode do not scroll horizontally).
