@@ -2,68 +2,60 @@ package de.cofinpro.editor.terminal;
 
 import lombok.Getter;
 
+import java.util.Objects;
+
 @Getter
 public class Clipping {
 
-    int top; // line number index - starting with 0
-    int bottom; // line index of bottom (not included)
-    int left;
-    int right;
-    private final RefreshListener refreshListener;
-    private final int horizontalScrollDist;
-    private final int verticalScrollDist;
+    private int top; // line number index - starting with 0
+    private int bottom; // line index of bottom (not included)
+    private int left;
+    private int right;
+    private final Refreshable terminal;
+    private int horizontalScrollDist;
+    private int verticalScrollDist;
 
-    public Clipping(int top, int bottom, int left, int right, RefreshListener refreshListener) {
-        this.top = top;
-        this.bottom = bottom;
-        this.left = left;
-        this.right = right;
-        this.refreshListener = refreshListener;
+    public Clipping(int rows, int cols, Refreshable terminal) {
+        this.terminal = terminal;
+        resize(rows, cols, null);
+    }
+
+    public void resize(int rows, int cols, Cursor cursor) {
+        this.bottom = top + rows - 1;
+        this.right = left + cols;
         horizontalScrollDist = (right - left) / 2;
         verticalScrollDist = (bottom - top) / 2;
+        if (Objects.nonNull(cursor)) {
+            setPosition(cursor);
+        }
     }
 
-    public void scrollDown() {
-        top += verticalScrollDist;
-        bottom += verticalScrollDist;
-        refreshListener.refresh();
+    public void setPosition(Cursor cursor) {
+        boolean refresh = false;
+        if (cursor.line <= top || cursor.line >= bottom) {
+            centerVertical(cursor.line);
+            refresh = true;
+        }
+        if (cursor.column <= left || cursor.column >= right) {
+            centerHorizontal(cursor.column);
+            refresh = true;
+        }
+        if (refresh) {
+            terminal.refresh();
+            return;
+        }
+        terminal.refreshLine();
     }
 
-    public void scrollUp() {
-        var scrollDist = Math.min(top, verticalScrollDist);
-        top -= scrollDist;
-        bottom -= scrollDist;
-        refreshListener.refresh();
+    private void centerVertical(int line) {
+        var newTop = Math.max(0, line - verticalScrollDist);
+        bottom += newTop - top;
+        top = newTop;
     }
 
-    public void scrollRight() {
-        left += horizontalScrollDist;
-        right += horizontalScrollDist;
-        refreshListener.refresh();
-    }
-
-    public void scrollLeft() {
-        var scrollDist = Math.min(left, horizontalScrollDist);
-        left -= scrollDist;
-        right -= scrollDist;
-        refreshListener.refresh();
-    }
-
-    public void left() {
-        right -= left;
-        left = 0;
-        refreshListener.refresh();
-    }
-
-
-    public int getDisplayCol(int column) {
-        return column - left;
-    }
-
-    public void centerHorizontal(int column) {
-        var dist = column - right + horizontalScrollDist;
-        left += dist;
-        right += dist;
-        refreshListener.refresh();
+    private void centerHorizontal(int column) {
+        var newLeft = Math.max(0, column - 1 - horizontalScrollDist);
+        right += newLeft - left;
+        left = newLeft;
     }
 }

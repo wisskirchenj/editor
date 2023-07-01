@@ -7,7 +7,7 @@ import java.io.IOException;
 import static de.cofinpro.editor.terminal.AnsiEscape.red;
 
 @Slf4j
-public class SttyCommand {
+class SttyCommand {
 
     String run() {
         try {
