@@ -2,7 +2,10 @@ package de.cofinpro.editor.model;
 
 import de.cofinpro.editor.terminal.Clipping;
 import de.cofinpro.editor.terminal.Cursor;
+import lombok.SneakyThrows;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,5 +73,25 @@ public class EditorModel {
 
     public int lineCount() {
         return lines.size();
+    }
+
+    private void replaceBy(String contents) {
+        lines.clear();
+        contents.lines().forEach(line -> lines.add(new StringBuilder(line)));
+        if (contents.endsWith("\n")) {
+            lines.add(new StringBuilder());
+        }
+    }
+
+    @SneakyThrows
+    public void loadFromFile(String filename) {
+        final var contents = Files.readString(Path.of(filename));
+        replaceBy(contents);
+    }
+
+    @SneakyThrows
+    public void saveToFile(String filename, Clipping clipping) {
+        Files.writeString(Path.of(filename),
+                String.join( "\n", getClippingContent(clipping)));
     }
 }

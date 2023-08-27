@@ -11,10 +11,6 @@ public class Cursor {
     int line;
     int column;
 
-    void forward() {
-        forward(false);
-    }
-
     void up() {
         if (line == 1) {
             return;
@@ -31,17 +27,22 @@ public class Cursor {
         verticalMovedCursor();
     }
 
-    Cursor forward(boolean stayInLine) {
-        if (stayInLine || column <= model.getColsInLine(line)) {
+    private void verticalMovedCursor() {
+        var colsInLine = model.getColsInLine(line);
+        if (column > colsInLine) { //set cursor after last char
+            column = colsInLine + 1;
+        }
+    }
+
+    Cursor forward() {
+        if (column <= model.getColsInLine(line)) {
             column++;
             return this;
         }
         if (line == model.lineCount()) {
             return this;
         }
-        line++;
-        column = 1;
-        return this;
+        return carriageReturn();
     }
 
     Cursor carriageReturn() {
@@ -63,14 +64,13 @@ public class Cursor {
         return this;
     }
 
-    private void verticalMovedCursor() {
-        var colsInLine = model.getColsInLine(line);
-        if (column > colsInLine) { //set cursor after last char
-            column = colsInLine + 1;
-        }
-    }
-
     boolean isAtStartOfBuffer() {
         return line == 1 && column == 1;
+    }
+
+    Cursor topLeft() {
+        line = 1;
+        column = 1;
+        return this;
     }
 }

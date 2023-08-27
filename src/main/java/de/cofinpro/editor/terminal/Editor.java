@@ -1,11 +1,13 @@
 package de.cofinpro.editor.terminal;
 
 import de.cofinpro.editor.model.EditorModel;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
 import static de.cofinpro.editor.terminal.AnsiEscape.EraseMode.ALL;
+import static de.cofinpro.editor.terminal.AnsiEscape.back;
 import static de.cofinpro.editor.terminal.AnsiEscape.erase;
 import static de.cofinpro.editor.terminal.AnsiEscape.eraseLine;
 import static de.cofinpro.editor.terminal.AnsiEscape.inverted;
@@ -15,7 +17,9 @@ import static de.cofinpro.editor.terminal.AnsiEscape.positionCursorTopLeft;
 @Slf4j
 public class Editor implements Refreshable {
 
+    private static final int CTRL_L = 12;
     private static final int CTRL_Q = 17;
+    private static final int CTRL_S = 19;
     private static final int CTRL_W = 23;
     private static final int RETURN = 13;
     private static final int BACKSPACE = 127;
@@ -23,6 +27,7 @@ public class Editor implements Refreshable {
     private final EditorModel model;
     private final Clipping clipping;
     private final Cursor cursor;
+    private String filename = "";
     private int rows;
     private int cols;
 
@@ -54,7 +59,9 @@ public class Editor implements Refreshable {
                 case BACKSPACE -> backspace();
                 case RETURN -> carriageReturn();
                 case '\033' -> readEscapeSequence();
-                case CTRL_W -> resizeWindow(); // Ctrl-W
+                case CTRL_W -> resizeWindow();
+                case CTRL_S -> new FileHandler().saveBuffer();
+                case CTRL_L -> new FileHandler().loadBuffer();
                 default -> print(key);
             }
             key = System.in.read();
@@ -76,14 +83,14 @@ public class Editor implements Refreshable {
 
     private void printChar(char character) {
         model.insert(character, cursor);
-        clipping.setPosition(cursor.forward(true));
+        clipping.setPosition(cursor.forward());
     }
 
     private void carriageReturn() {
         var column = cursor.column;
         model.insertLine(cursor.carriageReturn().line, column);
         clipping.setPosition(cursor);
-        refresh();
+        refresh(); // needed as two lines need refresh (not only the one which is handled by setPosition)
     }
 
     private void backspace() {
@@ -92,7 +99,7 @@ public class Editor implements Refreshable {
         }
         model.deleteCharAt(cursor.back());
         clipping.setPosition(cursor);
-        refresh();
+        refresh(); // needed as two lines need refresh (not only the one which is handled by setPosition)
     }
 
     private void readEscapeSequence() throws IOException {
@@ -124,7 +131,7 @@ public class Editor implements Refreshable {
     }
 
     private String updateDisplayAndStatus() {
-        return updateDisplayWithStatus("");
+        return updateDisplayWithStatus(filename);
     }
 
     private String updateDisplayWithStatus(String status) {
@@ -160,5 +167,41 @@ public class Editor implements Refreshable {
     private void close() {
         log.info(erase(ALL) + positionCursorTopLeft());
         LibC.INSTANCE.setNormalMode();
+    }
+
+    private class FileHandler {
+        private void loadBuffer() {
+            filename = readFilename();
+            model.loadFromFile(filename);
+            positionCursorTopLeft();
+            clipping.setPosition(cursor.topLeft());
+            refresh();
+        }
+
+        private void saveBuffer() {
+            filename = readFilename();
+            model.saveToFile(filename, clipping);
+            refresh();
+        }
+
+        @SneakyThrows
+        private String readFilename() {
+            log.info(positionCursor(rows, 1)
+                     + inverted("Enter filename:" + " ".repeat(cols - 15))
+                     + positionCursor(rows, 17));
+            var fileBuilder = new StringBuilder();
+            int key = System.in.read();
+            while (key != RETURN) {
+                if (!fileBuilder.isEmpty() && key == BACKSPACE) {
+                    log.info(back() + inverted(" ") + back());
+                    fileBuilder.deleteCharAt(fileBuilder.length() - 1);
+                } else if (key > 31 && key < BACKSPACE) { // allowed chars
+                    log.info(inverted("{}"), (char) key);
+                    fileBuilder.append((char) key);
+                }
+                key = System.in.read();
+            }
+            return fileBuilder.toString();
+        }
     }
 }
