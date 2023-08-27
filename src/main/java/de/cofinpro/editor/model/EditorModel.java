@@ -90,8 +90,8 @@ public class EditorModel {
     }
 
     @SneakyThrows
-    public void saveToFile(String filename, Clipping clipping) {
+    public void saveToFile(String filename) {
         Files.writeString(Path.of(filename),
-                String.join( "\n", getClippingContent(clipping)));
+                String.join( "\n", lines));
     }
 }

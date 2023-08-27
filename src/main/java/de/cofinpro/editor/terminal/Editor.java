@@ -180,7 +180,7 @@ public class Editor implements Refreshable {
 
         private void saveBuffer() {
             filename = readFilename();
-            model.saveToFile(filename, clipping);
+            model.saveToFile(filename);
             refresh();
         }
 
