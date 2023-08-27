@@ -7,8 +7,7 @@ Test some stuff inspired by Editor Series of Marco Codes on You Tube.
 - Java 20
 - JNA, to call libc methods of MacOs Ventana 13.3
 - Log4j2 with custom programmatic configuration
-- Tests with Junit-Jupiter and Mockito
-- Gradle 8.1.1
+- Gradle 8.3
 
 ## Program description
 
