@@ -38,14 +38,17 @@ Currently implemented control keys:
 > 
 > `Ctrl-W`: After a manual terminal resize adjust the running editor to the new dimensions (Internally it runs an stty-)
 command and uses its output to set new clipping dimensions).
-> 
+>
+> `Ctrl-S`: Save buffer to file. Filename is entered in the statusbar - relative to working directory.
+>
+> `Ctrl-L`: Load buffer from file. Filename is entered in the statusbar - relative to working directory.
+>
 > `BACKSPACE`: delete character in front of cursor (no surprise here :-)
 > 
 > `Arrow-Keys`: navigate through the text buffer - viewport scrolls to center cursor position as soon as the boundary is
 touched or when jumping out of the viewport (similar and inspired by the behaviour of emacs)
 > 
 > More to come up ...
-
 
 ## Project status
 
@@ -63,3 +66,6 @@ custom ConfigurationFactory.
 01.07.23 Core editor functionality implemented based on an OOP-design with an Editor (controller-type) class, that
 instantiates and uses EditorModel, Cursor and Clipping objects. The editor scrolls its viewport vertically as well
 as horizontally (unlike emacs or vi, who in base mode do not scroll horizontally).
+
+27.08.23 Besides some minor refactoring, load and save functionality to and from file added. Filename is entered in
+the status bar implemented in new inner class Editor.FileHandler using new methods in the EditorModel and Cursor.
