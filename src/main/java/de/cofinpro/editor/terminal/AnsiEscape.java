@@ -7,6 +7,8 @@ class AnsiEscape {
     static final String ERASE_LINE_SEQ = ESC + "[%dK";
     static final String POS_SEQ = ESC + "[%sH";
     static final String BACK_SEQ = ESC + "[D";
+    static final int CTRL_A = 1;
+    static final int CTRL_E = 5;
     static final int CTRL_L = 12;
     static final int CTRL_Q = 17;
     static final int CTRL_S = 19;

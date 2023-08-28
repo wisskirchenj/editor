@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 
 import static de.cofinpro.editor.terminal.AnsiEscape.BACKSPACE;
+import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_A;
+import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_E;
 import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_L;
 import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_Q;
 import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_S;
@@ -63,6 +65,8 @@ public class Editor implements Refreshable {
                 case RETURN -> carriageReturn();
                 case ESC -> readEscapeSequence();
                 case CTRL_W -> resizeWindow();
+                case CTRL_A -> beginOfLine();
+                case CTRL_E -> endOfLine();
                 case CTRL_V -> scroll(ScrollDirection.DOWN);
                 case CTRL_S -> new FileHandler().saveBuffer();
                 case CTRL_L -> new FileHandler().loadBuffer();
@@ -71,6 +75,14 @@ public class Editor implements Refreshable {
             key = System.in.read();
         }
         close();
+    }
+
+    private void beginOfLine() {
+        clipping.setPosition(cursor.lineBegin());
+    }
+
+    private void endOfLine() {
+        clipping.setPosition(cursor.lineEnd());
     }
 
     private void scroll(ScrollDirection direction) {

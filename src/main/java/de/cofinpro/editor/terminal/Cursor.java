@@ -35,7 +35,7 @@ public class Cursor {
     private void verticalMovedCursor() {
         var colsInLine = model.getColsInLine(line);
         if (column > colsInLine) { //set cursor after last char
-            column = colsInLine + 1;
+            lineEnd();
         }
     }
 
@@ -51,9 +51,8 @@ public class Cursor {
     }
 
     Cursor carriageReturn() {
-        column = 1;
         line++;
-        return this;
+        return lineBegin();
     }
 
     Cursor back() {
@@ -65,8 +64,7 @@ public class Cursor {
             return this;
         }
         line--;
-        column = model.getColsInLine(line) + 1;
-        return this;
+        return lineEnd();
     }
 
     boolean isAtStartOfBuffer() {
@@ -75,7 +73,16 @@ public class Cursor {
 
     Cursor topLeft() {
         line = 1;
+        return lineBegin();
+    }
+
+    Cursor lineBegin() {
         column = 1;
+        return this;
+    }
+
+    public Cursor lineEnd() {
+        column = model.getColsInLine(line) + 1;
         return this;
     }
 }
