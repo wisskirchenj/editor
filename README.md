@@ -33,25 +33,28 @@ within IDE, since the Run-terminals here are emulated and the JNA-calls won't wo
 
 Currently implemented control keys:
 
-> `CTRL-Q`: Quit the editor
->
-> `Ctrl-V`: Page-Down - scroll down one page (# rows in display).
->
-> `Esc-V` (or `M-V` Emacs-style): Page-Up - scroll up one page (# rows in display).
-> 
-> `Ctrl-W`: After a manual terminal resize adjust the running editor to the new dimensions (Internally it runs an stty-)
-command and uses its output to set new clipping dimensions).
->
-> `Ctrl-S`: Save buffer to file. Filename is entered in the statusbar - relative to working directory.
->
-> `Ctrl-L`: Load buffer from file. Filename is entered in the statusbar - relative to working directory.
+> `CTRL-Q`: Quit the editor.
 >
 > `BACKSPACE`: delete character in front of cursor (no surprise here :-)
 > 
 > `Arrow-Keys`: navigate through the text buffer - viewport scrolls to center cursor position as soon as the boundary is
 touched or when jumping out of the viewport (similar and inspired by the behaviour of emacs)
 > 
-> More to come up ...
+> `Ctrl-A`: Jump to Begin of Line.
+>
+> `Ctrl-E`: Jump to End of Line(behind last character).
+>
+> `Ctrl-V`: Page-Down - scroll down one page (# rows in display).
+>
+> `Esc-V` (or `M-V` Emacs-style): Page-Up - scroll up one page (# rows in display).
+> 
+> `Ctrl-S`: Save buffer to file. Filename is entered in the statusbar - relative to working directory.
+>
+> `Ctrl-L`: Load buffer from file. Filename is entered in the statusbar - relative to working directory.
+>
+> `Ctrl-W`: After a manual terminal resize adjust the running editor to the new dimensions (Internally it runs an stty-)
+command and uses its output to set new clipping dimensions).
+>
 
 ## Project status
 
@@ -73,4 +76,6 @@ as horizontally (unlike emacs or vi, who in base mode do not scroll horizontally
 27.08.23 Besides some minor refactoring, load and save functionality to and from file added. Filename is entered in
 the status bar implemented in new inner class Editor.FileHandler using new methods in the EditorModel and Cursor.
 
-28.08.23 Page-Up and -down implemented using the Emacs key shortcuts. File-IO exception handling added.
+28.08.23 Page-Up and -down implemented using the Emacs key shortcuts. File-IO exception handling added. Jump to
+End and Begin of Line added - again with Emacs shortcuts.
+
