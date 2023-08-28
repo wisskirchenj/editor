@@ -5,15 +5,13 @@ import de.cofinpro.editor.config.Log4j2CustomConfigurationFactory;
 import de.cofinpro.editor.terminal.Editor;
 import org.apache.logging.log4j.core.config.ConfigurationFactory;
 
-import java.io.IOException;
-
 public class Viewer {
 
     static {
         ConfigurationFactory.setConfigurationFactory(new Log4j2CustomConfigurationFactory());
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Native.setProtected(true);
         new Editor().run();
     }

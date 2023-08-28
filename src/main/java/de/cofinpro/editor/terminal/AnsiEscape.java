@@ -2,11 +2,18 @@ package de.cofinpro.editor.terminal;
 
 class AnsiEscape {
 
-    static final String ERASE_SEQ = "\033[%dJ";
-    static final String ERASE_LINE_SEQ = "\033[%dK";
-    static final String POS_SEQ = "\033[%sH";
-    static final String BACK_SEQ = "\033[D";
-
+    static final char ESC = '\033';
+    static final String ERASE_SEQ = ESC + "[%dJ";
+    static final String ERASE_LINE_SEQ = ESC + "[%dK";
+    static final String POS_SEQ = ESC + "[%sH";
+    static final String BACK_SEQ = ESC + "[D";
+    static final int CTRL_L = 12;
+    static final int CTRL_Q = 17;
+    static final int CTRL_S = 19;
+    static final int CTRL_V = 22;
+    static final int CTRL_W = 23;
+    static final int RETURN = 13;
+    static final int BACKSPACE = 127;
     private AnsiEscape() {
         // no instances
     }

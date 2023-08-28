@@ -6,7 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
+import static de.cofinpro.editor.terminal.AnsiEscape.BACKSPACE;
+import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_L;
+import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_Q;
+import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_S;
+import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_V;
+import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_W;
+import static de.cofinpro.editor.terminal.AnsiEscape.ESC;
 import static de.cofinpro.editor.terminal.AnsiEscape.EraseMode.ALL;
+import static de.cofinpro.editor.terminal.AnsiEscape.RETURN;
 import static de.cofinpro.editor.terminal.AnsiEscape.back;
 import static de.cofinpro.editor.terminal.AnsiEscape.erase;
 import static de.cofinpro.editor.terminal.AnsiEscape.eraseLine;
@@ -17,12 +25,6 @@ import static de.cofinpro.editor.terminal.AnsiEscape.positionCursorTopLeft;
 @Slf4j
 public class Editor implements Refreshable {
 
-    private static final int CTRL_L = 12;
-    private static final int CTRL_Q = 17;
-    private static final int CTRL_S = 19;
-    private static final int CTRL_W = 23;
-    private static final int RETURN = 13;
-    private static final int BACKSPACE = 127;
     private static final String STATUS_PREFIX = " Jürgen's Editor: (L%d C%d) ";
     private final EditorModel model;
     private final Clipping clipping;
@@ -51,15 +53,17 @@ public class Editor implements Refreshable {
         log.info(positionStartOfLine() + eraseLine(ALL) + clippedLine + updateDisplayAndStatus());
     }
 
-    public void run() throws IOException {
+    @SneakyThrows
+    public void run() {
         refresh();
         int key = System.in.read();
         while (key != CTRL_Q) {
             switch (key) {
                 case BACKSPACE -> backspace();
                 case RETURN -> carriageReturn();
-                case '\033' -> readEscapeSequence();
+                case ESC -> readEscapeSequence();
                 case CTRL_W -> resizeWindow();
+                case CTRL_V -> scroll(ScrollDirection.DOWN);
                 case CTRL_S -> new FileHandler().saveBuffer();
                 case CTRL_L -> new FileHandler().loadBuffer();
                 default -> print(key);
@@ -67,6 +71,13 @@ public class Editor implements Refreshable {
             key = System.in.read();
         }
         close();
+    }
+
+    private void scroll(ScrollDirection direction) {
+        cursor.jumpToLine(direction == ScrollDirection.UP
+                ? Math.max(1, cursor.line - rows + 1)
+                : Math.min(model.lineCount(), cursor.line + rows - 1));
+        clipping.setPosition(cursor);
     }
 
     private void print(int ascii) {
@@ -104,20 +115,24 @@ public class Editor implements Refreshable {
 
     private void readEscapeSequence() throws IOException {
         int second = System.in.read();
-        if (second != '[') {
-            print(second);
-        } else {
-            int third = System.in.read();
-            switch (third) {
-                case 'A' -> cursor.up();
-                case 'B' -> cursor.down();
-                case 'C' -> cursor.forward();
-                case 'D' -> cursor.back();
-                default -> print(third);
-            }
-            clipping.setPosition(cursor);
-            log.info(updateDisplayAndStatus());
+        switch (second) {
+            case '[' -> processCsiSequence();
+            case 'v' -> scroll(ScrollDirection.UP);
+            default -> print(second);
         }
+    }
+
+    private void processCsiSequence() throws IOException {
+        int third = System.in.read();
+        switch (third) {
+            case 'A' -> cursor.up();
+            case 'B' -> cursor.down();
+            case 'C' -> cursor.forward();
+            case 'D' -> cursor.back();
+            default -> print(third);
+        }
+        clipping.setPosition(cursor);
+        log.info(updateDisplayAndStatus());
     }
 
     private String clippingContents() {
@@ -169,19 +184,34 @@ public class Editor implements Refreshable {
         LibC.INSTANCE.setNormalMode();
     }
 
+    private enum ScrollDirection {
+        UP,
+        DOWN
+    }
+
     private class FileHandler {
         private void loadBuffer() {
             filename = readFilename();
-            model.loadFromFile(filename);
-            positionCursorTopLeft();
-            clipping.setPosition(cursor.topLeft());
-            refresh();
+            try {
+                model.loadFromFile(filename);
+                positionCursorTopLeft();
+                clipping.setPosition(cursor.topLeft());
+                refresh();
+            } catch (IOException e) {
+                filename = "";
+                log.info(updateDisplayWithStatus(" - " + e));
+            }
         }
 
         private void saveBuffer() {
             filename = readFilename();
-            model.saveToFile(filename);
-            refresh();
+            try {
+                model.saveToFile(filename);
+                refresh();
+            } catch (IOException e) {
+                filename = "";
+                log.info(updateDisplayWithStatus(" - " + e));
+            }
         }
 
         @SneakyThrows

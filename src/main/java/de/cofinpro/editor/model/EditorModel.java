@@ -2,8 +2,8 @@ package de.cofinpro.editor.model;
 
 import de.cofinpro.editor.terminal.Clipping;
 import de.cofinpro.editor.terminal.Cursor;
-import lombok.SneakyThrows;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -75,6 +75,10 @@ public class EditorModel {
         return lines.size();
     }
 
+    public void loadFromFile(String filename) throws IOException {
+        replaceBy(Files.readString(Path.of(filename)));
+    }
+
     private void replaceBy(String contents) {
         lines.clear();
         contents.lines().forEach(line -> lines.add(new StringBuilder(line)));
@@ -83,15 +87,7 @@ public class EditorModel {
         }
     }
 
-    @SneakyThrows
-    public void loadFromFile(String filename) {
-        final var contents = Files.readString(Path.of(filename));
-        replaceBy(contents);
-    }
-
-    @SneakyThrows
-    public void saveToFile(String filename) {
-        Files.writeString(Path.of(filename),
-                String.join( "\n", lines));
+    public void saveToFile(String filename) throws IOException {
+        Files.writeString(Path.of(filename), String.join( "\n", lines));
     }
 }

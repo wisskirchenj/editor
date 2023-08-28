@@ -27,6 +27,11 @@ public class Cursor {
         verticalMovedCursor();
     }
 
+    public void jumpToLine(int targetLine) {
+        line = targetLine;
+        verticalMovedCursor();
+    }
+
     private void verticalMovedCursor() {
         var colsInLine = model.getColsInLine(line);
         if (column > colsInLine) { //set cursor after last char

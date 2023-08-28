@@ -34,6 +34,10 @@ within IDE, since the Run-terminals here are emulated and the JNA-calls won't wo
 Currently implemented control keys:
 
 > `CTRL-Q`: Quit the editor
+>
+> `Ctrl-V`: Page-Down - scroll down one page (# rows in display).
+>
+> `Esc-V` (or `M-V` Emacs-style): Page-Up - scroll up one page (# rows in display).
 > 
 > `Ctrl-W`: After a manual terminal resize adjust the running editor to the new dimensions (Internally it runs an stty-)
 command and uses its output to set new clipping dimensions).
@@ -68,3 +72,5 @@ as horizontally (unlike emacs or vi, who in base mode do not scroll horizontally
 
 27.08.23 Besides some minor refactoring, load and save functionality to and from file added. Filename is entered in
 the status bar implemented in new inner class Editor.FileHandler using new methods in the EditorModel and Cursor.
+
+28.08.23 Page-Up and -down implemented using the Emacs key shortcuts. File-IO exception handling added.
