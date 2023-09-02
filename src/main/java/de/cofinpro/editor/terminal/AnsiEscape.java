@@ -9,8 +9,10 @@ class AnsiEscape {
     static final String BACK_SEQ = ESC + "[D";
     static final int CTRL_A = 1;
     static final int CTRL_E = 5;
+    static final int CTRL_F = 6;
     static final int CTRL_L = 12;
     static final int CTRL_Q = 17;
+    static final int CTRL_R = 18;
     static final int CTRL_S = 19;
     static final int CTRL_V = 22;
     static final int CTRL_W = 23;

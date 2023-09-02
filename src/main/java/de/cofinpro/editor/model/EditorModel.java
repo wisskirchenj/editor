@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class EditorModel {
 
@@ -75,6 +76,38 @@ public class EditorModel {
         return lines.size();
     }
 
+    public Optional<Cursor.Position> search(String searchText, Cursor.Position from) {
+        var index = lines.get(from.line() - 1).indexOf(searchText, from.column() - 1);
+        if (index >= 0) {
+            return Optional.of(new Cursor.Position(from.line(), index + 1));
+        }
+        for (int i = from.line(); i < lines.size(); i++) {
+            index = lines.get(i).indexOf(searchText);
+            if (index >= 0) {
+                return Optional.of(new Cursor.Position(i + 1, index + 1));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<Cursor.Position> searchBackwards(String searchText, Cursor.Position from) {
+        var index = lines.get(from.line() - 1).substring(0, from.column() - 1).lastIndexOf(searchText);
+        if (index >= 0) {
+            return Optional.of(new Cursor.Position(from.line(), index + 1));
+        }
+        for (int i = from.line() - 2; i >= 0; i--) {
+            index = lines.get(i).lastIndexOf(searchText);
+            if (index >= 0) {
+                return Optional.of(new Cursor.Position(i + 1, index + 1));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public void saveToFile(String filename) throws IOException {
+        Files.writeString(Path.of(filename), String.join( "\n", lines));
+    }
+
     public void loadFromFile(String filename) throws IOException {
         replaceBy(Files.readString(Path.of(filename)));
     }
@@ -85,9 +118,5 @@ public class EditorModel {
         if (contents.endsWith("\n")) {
             lines.add(new StringBuilder());
         }
-    }
-
-    public void saveToFile(String filename) throws IOException {
-        Files.writeString(Path.of(filename), String.join( "\n", lines));
     }
 }

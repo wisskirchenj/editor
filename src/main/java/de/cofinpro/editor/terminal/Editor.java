@@ -5,12 +5,16 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Optional;
+import java.util.function.BiFunction;
 
 import static de.cofinpro.editor.terminal.AnsiEscape.BACKSPACE;
 import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_A;
 import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_E;
+import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_F;
 import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_L;
 import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_Q;
+import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_R;
 import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_S;
 import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_V;
 import static de.cofinpro.editor.terminal.AnsiEscape.CTRL_W;
@@ -67,7 +71,9 @@ public class Editor implements Refreshable {
                 case CTRL_W -> resizeWindow();
                 case CTRL_A -> beginOfLine();
                 case CTRL_E -> endOfLine();
-                case CTRL_V -> scroll(ScrollDirection.DOWN);
+                case CTRL_F -> find(Direction.DOWN);
+                case CTRL_R -> find(Direction.UP);
+                case CTRL_V -> scroll(Direction.DOWN);
                 case CTRL_S -> new FileHandler().saveBuffer();
                 case CTRL_L -> new FileHandler().loadBuffer();
                 default -> print(key);
@@ -77,16 +83,96 @@ public class Editor implements Refreshable {
         close();
     }
 
+    private void readEscapeSequence() throws IOException {
+        int second = System.in.read();
+        switch (second) {
+            case '[' -> processCsiSequence();
+            case 'v' -> scroll(Direction.UP);
+            case '<' -> beginOfBuffer();
+            case '>' -> endOfBuffer();
+            default -> print(second);
+        }
+    }
+
+    private void processCsiSequence() throws IOException {
+        int third = System.in.read();
+        switch (third) {
+            case 'A' -> cursor.up();
+            case 'B' -> cursor.down();
+            case 'C' -> cursor.forward();
+            case 'D' -> cursor.back();
+            default -> print(third);
+        }
+        clipping.setPosition(cursor);
+        log.info(updateDisplayAndStatus());
+    }
+
+    private void find(Direction direction) {
+        var searchText = readFromStatusbar("Enter search text:");
+        BiFunction<String, Cursor.Position, Optional<Cursor.Position>> searchMethod = direction == Direction.UP
+                        ? model::searchBackwards
+                        : model::search;
+        searchMethod.apply(searchText, cursor.getPosition()).ifPresentOrElse(
+                pos -> incrementalSearch(pos, searchText),
+                () -> log.info(updateDisplayWithStatus("Not found!"))
+        );
+    }
+
+    @SneakyThrows
+    private void incrementalSearch(Cursor.Position pos, String searchText) {
+        clipping.setPosition(cursor.setPosition(pos));
+        log.info(updateDisplayWithStatus("n -> find next; p -> find previous; q -> quit"));
+        int key = System.in.read();
+        while (key != 'q') {
+            if (key == 'n' && !findForward(searchText) || key == 'p' && !findBackward(searchText)) {
+                break;
+            }
+            clipping.setPosition(cursor);
+            log.info(updateDisplayWithStatus("n -> find next; p -> find previous; q -> quit"));
+            key = System.in.read();
+        }
+        log.info(key == 'q' ? updateDisplayAndStatus() : updateDisplayWithStatus("Not found!"));
+    }
+
+    private boolean findBackward(String searchText) {
+        var positionOpt = model.searchBackwards(searchText, cursor.getPosition());
+        if (positionOpt.isEmpty()) {
+            return false;
+        } else {
+            cursor.setPosition(positionOpt.get());
+        }
+        return true;
+    }
+
+    private boolean findForward(String searchText) {
+        var positionOpt = model.search(searchText, cursor.forward().getPosition());
+        if (positionOpt.isEmpty()) {
+            cursor.back();
+            return false;
+        } else {
+            cursor.setPosition(positionOpt.get());
+        }
+        return true;
+    }
+
     private void beginOfLine() {
         clipping.setPosition(cursor.lineBegin());
+    }
+
+    private void beginOfBuffer() {
+        clipping.setPosition(cursor.jumpBeginOfBuffer());
     }
 
     private void endOfLine() {
         clipping.setPosition(cursor.lineEnd());
     }
 
-    private void scroll(ScrollDirection direction) {
-        cursor.jumpToLine(direction == ScrollDirection.UP
+    private void endOfBuffer() {
+        clipping.setPosition(cursor.jumpEndOfBuffer());
+    }
+
+    private void scroll(Direction direction) {
+        cursor.jumpToLine(direction == Direction.UP
                 ? Math.max(1, cursor.line - rows + 1)
                 : Math.min(model.lineCount(), cursor.line + rows - 1));
         clipping.setPosition(cursor);
@@ -123,28 +209,6 @@ public class Editor implements Refreshable {
         model.deleteCharAt(cursor.back());
         clipping.setPosition(cursor);
         refresh(); // needed as two lines need refresh (not only the one which is handled by setPosition)
-    }
-
-    private void readEscapeSequence() throws IOException {
-        int second = System.in.read();
-        switch (second) {
-            case '[' -> processCsiSequence();
-            case 'v' -> scroll(ScrollDirection.UP);
-            default -> print(second);
-        }
-    }
-
-    private void processCsiSequence() throws IOException {
-        int third = System.in.read();
-        switch (third) {
-            case 'A' -> cursor.up();
-            case 'B' -> cursor.down();
-            case 'C' -> cursor.forward();
-            case 'D' -> cursor.back();
-            default -> print(third);
-        }
-        clipping.setPosition(cursor);
-        log.info(updateDisplayAndStatus());
     }
 
     private String clippingContents() {
@@ -196,14 +260,34 @@ public class Editor implements Refreshable {
         LibC.INSTANCE.setNormalMode();
     }
 
-    private enum ScrollDirection {
+    @SneakyThrows
+    private String readFromStatusbar(String prompt) {
+        log.info(positionCursor(rows, 1)
+                 + inverted(prompt + " ".repeat(cols - prompt.length()))
+                 + positionCursor(rows, prompt.length() + 2));
+        var builder = new StringBuilder();
+        int key = System.in.read();
+        while (key != RETURN) {
+            if (!builder.isEmpty() && key == BACKSPACE) {
+                log.info(back() + inverted(" ") + back());
+                builder.deleteCharAt(builder.length() - 1);
+            } else if (key > 31 && key < BACKSPACE) { // allowed chars
+                log.info(inverted("{}"), (char) key);
+                builder.append((char) key);
+            }
+            key = System.in.read();
+        }
+        return builder.toString();
+    }
+
+    private enum Direction {
         UP,
         DOWN
     }
 
     private class FileHandler {
         private void loadBuffer() {
-            filename = readFilename();
+            filename = readFromStatusbar("Enter filename:");
             try {
                 model.loadFromFile(filename);
                 positionCursorTopLeft();
@@ -216,7 +300,7 @@ public class Editor implements Refreshable {
         }
 
         private void saveBuffer() {
-            filename = readFilename();
+            filename = readFromStatusbar("Enter filename:");
             try {
                 model.saveToFile(filename);
                 refresh();
@@ -226,24 +310,5 @@ public class Editor implements Refreshable {
             }
         }
 
-        @SneakyThrows
-        private String readFilename() {
-            log.info(positionCursor(rows, 1)
-                     + inverted("Enter filename:" + " ".repeat(cols - 15))
-                     + positionCursor(rows, 17));
-            var fileBuilder = new StringBuilder();
-            int key = System.in.read();
-            while (key != RETURN) {
-                if (!fileBuilder.isEmpty() && key == BACKSPACE) {
-                    log.info(back() + inverted(" ") + back());
-                    fileBuilder.deleteCharAt(fileBuilder.length() - 1);
-                } else if (key > 31 && key < BACKSPACE) { // allowed chars
-                    log.info(inverted("{}"), (char) key);
-                    fileBuilder.append((char) key);
-                }
-                key = System.in.read();
-            }
-            return fileBuilder.toString();
-        }
     }
 }

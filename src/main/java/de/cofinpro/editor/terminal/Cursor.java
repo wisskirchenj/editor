@@ -27,9 +27,10 @@ public class Cursor {
         verticalMovedCursor();
     }
 
-    public void jumpToLine(int targetLine) {
+    Cursor jumpToLine(int targetLine) {
         line = targetLine;
         verticalMovedCursor();
+        return this;
     }
 
     private void verticalMovedCursor() {
@@ -81,8 +82,32 @@ public class Cursor {
         return this;
     }
 
-    public Cursor lineEnd() {
+    Cursor lineEnd() {
         column = model.getColsInLine(line) + 1;
         return this;
     }
+
+    Cursor setPosition(Position position) {
+        column = position.column();
+        return jumpToLine(position.line());
+    }
+
+    Position getPosition() {
+        return new Position(line, column);
+    }
+
+    public Cursor jumpBeginOfBuffer() {
+        line = 1;
+        column = 1;
+        return this;
+    }
+
+    public Cursor jumpEndOfBuffer() {
+        line = model.lineCount();
+        return lineEnd();
+    }
+
+    public record Position(int line, int column) {
+    }
+
 }

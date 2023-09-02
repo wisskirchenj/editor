@@ -23,7 +23,7 @@ it most probably won't work on Linux or Windows WSL. But for the latter you can 
 So for Mac-users, after cloning use the gradle task
 `gradlew installDist`
 to install a runnable project. This will install your project (at least for IntelliJ Idea) in a subfolder of the
-project directory. You can find the executable bash-script then hier:
+project directory. You can find the executable bash-script then in:
 > $project_dir/build/install/editor/bin/editor
 
 You need to `cd` there now from a MacOS terminal and just run above script. It is _not_ possible to run the application from
@@ -33,26 +33,35 @@ within IDE, since the Run-terminals here are emulated and the JNA-calls won't wo
 
 Currently implemented control keys:
 
-> `CTRL-Q`: Quit the editor.
+> `CTRL-Q`: **Quit** the editor.
 >
 > `BACKSPACE`: delete character in front of cursor (no surprise here :-)
 > 
 > `Arrow-Keys`: navigate through the text buffer - viewport scrolls to center cursor position as soon as the boundary is
-touched or when jumping out of the viewport (similar and inspired by the behaviour of emacs)
+touched or when jumping out of the viewport (similar as and inspired by the behaviour of emacs)
 > 
-> `Ctrl-A`: Jump to Begin of Line.
+> `Ctrl-A`: Jump to **Begin of Line**.
 >
-> `Ctrl-E`: Jump to End of Line(behind last character).
+> `Ctrl-E`: Jump to **End of Line** (behind last character).
 >
-> `Ctrl-V`: Page-Down - scroll down one page (# rows in display).
+> `Esc-<` (or `M-<` Emacs-style): Jump to **Begin of Buffer**.
 >
-> `Esc-V` (or `M-V` Emacs-style): Page-Up - scroll up one page (# rows in display).
+> `Esc->` (or `M->`): Jump to **End of Buffer**.
+>
+> `Ctrl-V`: **Page-Down** - scroll down one page (# rows in display).
+>
+> `Esc-V` (or `M-V`): **Page-Up** - scroll up one page (# rows in display).
+>
+> `Ctrl-F`: Interactive and **incremental Search**. Entered search text can incrementally searched forward (`n` next)
+or backwards (`p` previous)
+>
+> `Ctrl-R`: Interactive **Search backwards**. Entering the incremental search above.
 > 
-> `Ctrl-S`: Save buffer to file. Filename is entered in the statusbar - relative to working directory.
+> `Ctrl-S`: **Save buffer** to file. Filename is entered in the statusbar - relative to working directory.
 >
-> `Ctrl-L`: Load buffer from file. Filename is entered in the statusbar - relative to working directory.
+> `Ctrl-L`: **Load buffer** from file. Filename is entered in the statusbar - relative to working directory.
 >
-> `Ctrl-W`: After a manual terminal resize adjust the running editor to the new dimensions (Internally it runs an stty-)
+> `Ctrl-W`: After a manual terminal **resize** adjust the running editor to the new dimensions (Internally it runs an stty-
 command and uses its output to set new clipping dimensions).
 >
 
@@ -79,3 +88,5 @@ the status bar implemented in new inner class Editor.FileHandler using new metho
 28.08.23 Page-Up and -down implemented using the Emacs key shortcuts. File-IO exception handling added. Jump to
 End and Begin of Line added - again with Emacs shortcuts.
 
+02.09.23 Jump to Begin and End of Buffer added (using Emacs Shortcuts M-<, M->) and incremental search forwards and backwards
+on Ctrl-F and Ctrl-R.
